@@ -8,18 +8,22 @@ import index
 import json
 from PIL import Image
 import argparse
-from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normalize, FiveCrop, Lambda,ToPILImage
+from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normalize, FiveCrop, Lambda, ToPILImage
+
 try:
     from torchvision.transforms import InterpolationMode
+
     BICUBIC = InterpolationMode.BICUBIC
 except ImportError:
     BICUBIC = Image.BICUBIC
 import torch.nn.functional as F
 
+
 def load_json(file_path):
     with open(file_path, 'r') as input_file:
         data = json.load(input_file)
     return data
+
 
 def load_entity_descriptions(args):
     entity_path = args.wikidata_ontology
@@ -31,6 +35,7 @@ def load_entity_descriptions(args):
 
     return entity_ids, entity_descriptions
 
+
 def add_embeddings(index, embeddings, ids, indexing_batch_size):
     end_idx = min(indexing_batch_size, embeddings.shape[0])
     ids_toadd = ids[:end_idx]
@@ -39,6 +44,7 @@ def add_embeddings(index, embeddings, ids, indexing_batch_size):
     embeddings = embeddings[end_idx:]
     index.index_data(ids_toadd, embeddings_toadd)
     return embeddings, ids
+
 
 def extract_features(entity_ids, entity_data, args):
     embeddings_dir = args.embedding_dir
@@ -57,11 +63,11 @@ def extract_features(entity_ids, entity_data, args):
 
     start_time = time.time()
     with torch.no_grad():
-        num_batches = int(len(entity_ids)/batch_size) + 1
+        num_batches = int(len(entity_ids) / batch_size) + 1
         for batch_index in range(num_batches):
             print('Process {}th of {} batches'.format(batch_index, num_batches))
-            input_entities = entity_data[batch_index*batch_size : (batch_index+1)*batch_size]
-            input_ids = ids[batch_index*batch_size : (batch_index+1)*batch_size]
+            input_entities = entity_data[batch_index * batch_size: (batch_index + 1) * batch_size]
+            input_ids = ids[batch_index * batch_size: (batch_index + 1) * batch_size]
 
             text = clip.tokenize(input_entities, truncate=True).to(device)
             text_features = model.encode_text(text)
@@ -108,14 +114,16 @@ def retrieve_knn(query_embeddings, faiss_index, args, n_entities=20):
                 top_results[wiki_id] = top_score
 
         results.append(top_entity_descriptions)
-    wiki_ids, wiki_scores = list(top_results.keys()) , list(top_results.values())
+    wiki_ids, wiki_scores = list(top_results.keys()), list(top_results.values())
     wiki_scores, wiki_ids = zip(*sorted(zip(wiki_scores, wiki_ids)))
     wiki_ids, wiki_scores = wiki_ids[::-1], wiki_scores[::-1]
     wiki_entities = [entity_data[wiki_id] for wiki_id in wiki_ids]
     return (wiki_entities, wiki_scores)
 
+
 def _convert_image_to_rgb(image):
     return image.convert("RGB")
+
 
 def _multicrop_transform(n_px=384):
     crop_size = 256
@@ -129,10 +137,11 @@ def _multicrop_transform(n_px=384):
         Normalize((0.48145466, 0.4578275, 0.40821073), (0.26862954, 0.26130258, 0.27577711)),
     ])
 
+
 class MultiCrop(object):
     def __init__(self, size):
         self.kernel_size = size
-        self.stride = int(self.kernel_size/2)
+        self.stride = int(self.kernel_size / 2)
 
     def __call__(self, image):
         image = ToTensor()(image)
@@ -140,10 +149,11 @@ class MultiCrop(object):
         image = F.pad(image, (image.size(2) % self.kernel_size // 2, image.size(2) % self.kernel_size // 2,
                               image.size(1) % self.kernel_size // 2, image.size(1) % self.kernel_size // 2))
 
-        patches = image.unfold(1, self.kernel_size, self.stride).unfold(2, self.kernel_size, self.stride).\
-            contiguous().view(c, -1,self.kernel_size,self.kernel_size)
+        patches = image.unfold(1, self.kernel_size, self.stride).unfold(2, self.kernel_size, self.stride). \
+            contiguous().view(c, -1, self.kernel_size, self.kernel_size)
         patches = patches.permute(1, 0, 2, 3)
         return patches
+
 
 def crop_images(image):
     image = ToTensor()(image)
@@ -151,12 +161,12 @@ def crop_images(image):
     stride = 64
     image = torchvision.transforms.functional.resize(image, 384)
     c, h, w = image.size()
-    image = F.pad(image, (image.size(2)%kernel_size//2, image.size(2)%kernel_size//2,
-                          image.size(1)%kernel_size//2, image.size(1)%kernel_size//2))
+    image = F.pad(image, (image.size(2) % kernel_size // 2, image.size(2) % kernel_size // 2,
+                          image.size(1) % kernel_size // 2, image.size(1) % kernel_size // 2))
     print(image.size())
 
-    patches = image.unfold(1, kernel_size, stride).unfold(2, kernel_size, stride).contiguous().view(c,-1,kernel_size,kernel_size)
-    patches = patches.permute(1,0,2,3)
+    patches = image.unfold(1, kernel_size, stride).unfold(2, kernel_size, stride).contiguous().view(c, -1, kernel_size, kernel_size)
+    patches = patches.permute(1, 0, 2, 3)
 
     num_patches = patches.size(0)
     for index in range(num_patches):
@@ -167,18 +177,15 @@ def crop_images(image):
 def get_args_parser():
     parser = argparse.ArgumentParser('DeiT training and evaluation script', add_help=False)
     parser.add_argument('--split_type', default='train2014', type=str)
-    parser.add_argument('--qa_path', default='', type=str, help='./OpenEnded_mscoco_[split_type]_questions.json')
-    parser.add_argument('--embedding_dir', type=str, default='./', help='dst root to faiss database')
-    parser.add_argument('--img_root',type=str, default='./', help='img root to okvqa')
-    parser.add_argument('--wikidata_ontology', type=str, default='./wikidata_ontology.pkl')
+    parser.add_argument('--qa_path', default='', type=str, help='./data/OpenEnded_mscoco_[split_type]_questions.json')
+    parser.add_argument('--embedding_dir', type=str, default='./data', help='dst root to faiss database')
+    parser.add_argument('--img_root', type=str, default='./data', help='img root to okvqa')
+    parser.add_argument('--wikidata_ontology', type=str, default='./data/wikidata_ontology.pkl')
 
     return parser
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser('Extracting explicit knowledge for KAT', parents=[get_args_parser()])
-    args = parser.parse_args()
-
+def run_with_okvqa(args):
     split_type = args.split_type
     image_names = []
     qa_path = os.path.join(args.qa_path, 'OpenEnded_mscoco_{}_questions.json'.format(split_type))
@@ -200,7 +207,7 @@ if __name__ == '__main__':
     embeddings_dir = args.embedding_dir
     faiss_index.deserialize_from(embeddings_dir)
 
-    img_root =  os.path.join(args.img_root, split_type)
+    img_root = os.path.join(args.img_root, split_type)
     results = {}
     for image_index, image_name in enumerate(image_names):
         print(image_index, image_name)
@@ -219,3 +226,58 @@ if __name__ == '__main__':
 
     with open('./wikidata_okvqa_{}_topentities.pkl'.format(split_type), 'wb') as output:
         pickle.dump(results, output)
+
+
+def load_all_entities(args):
+    entity_path = args.wikidata_ontology
+    with open(entity_path, 'rb') as f:
+        entity_data = pickle.load(f)
+
+    entity_ids = list(entity_data.keys())
+    entity_items = [entity_data[entity_id][0] for entity_id in entity_ids]
+
+    return entity_ids, entity_items
+
+
+def run_with_custom_images(image_dir_path, embeddings_dir, args):
+    from pathlib import Path
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model, preprocess = clip.load("ViT-B/16", device=device)
+    preprocess = _multicrop_transform()
+    indexing_dimension = 512
+    n_subquantizers = 0
+    n_bits = 8
+    faiss_index = index.Indexer(indexing_dimension, n_subquantizers, n_bits)
+    faiss_index.deserialize_from(embeddings_dir)
+
+    results = {}
+    for image_name in Path(image_dir_path).iterdir():
+        print(image_name)
+        img_path = os.path.join(image_dir_path, image_name)
+
+        image = preprocess(Image.open(img_path)).unsqueeze(0).to(device)
+        bs, ncrops, c, h, w = image.size()
+        image = image.view(-1, c, h, w)
+
+        with torch.no_grad():
+            image_features = model.encode_image(image)
+            image_features = image_features / image_features.norm(dim=-1, keepdim=True)
+            query_embeddings = image_features.detach().cpu().numpy()
+        top_entities = retrieve_knn(query_embeddings, faiss_index, args)
+        results[image_name] = top_entities
+
+    with open('./topentities.pkl', 'wb') as output:
+        pickle.dump(results, output)
+
+
+if __name__ == '__main__':
+    _parser = argparse.ArgumentParser('Extracting explicit knowledge for KAT', parents=[get_args_parser()])
+    _args = _parser.parse_args()
+
+    # 1. Index the knowledge base
+    _entity_ids, _entity_data = load_all_entities(_args)
+    extract_features(_entity_ids, _entity_data, _args)
+
+    # 2. Extract the explicit features
+    # run_with_custom_images('/Users/dt/Downloads/test', _args)
