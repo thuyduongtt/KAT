@@ -178,8 +178,8 @@ def get_args_parser():
     parser = argparse.ArgumentParser('DeiT training and evaluation script', add_help=False)
     parser.add_argument('--split_type', default='train2014', type=str)
     parser.add_argument('--qa_path', default='', type=str, help='./data/OpenEnded_mscoco_[split_type]_questions.json')
-    parser.add_argument('--embedding_dir', type=str, default='./data', help='dst root to faiss database')
-    parser.add_argument('--img_root', type=str, default='./data', help='img root to okvqa')
+    parser.add_argument('--embedding_dir', type=str, default='./embeddings', help='dst root to faiss database')
+    parser.add_argument('--img_root', type=str, default='./test_images', help='img root to okvqa')
     parser.add_argument('--wikidata_ontology', type=str, default='./data/wikidata_ontology.pkl')
 
     return parser
