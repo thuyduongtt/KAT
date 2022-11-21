@@ -84,7 +84,7 @@ def extract_features(entity_ids, entity_data, args):
 
 def retrieve_knn(query_embeddings, faiss_index, args, n_entities=20):
     embeddings_dir = args.embedding_dir
-    entity_path = args.entity_path
+    entity_path = args.wikidata_ontology
     with open(entity_path, 'rb') as input:
         entity_data = pickle.load(input)
     entity_ids = list(entity_data.keys())
@@ -252,9 +252,9 @@ def run_with_custom_images(image_dir_path, embeddings_dir, args):
     faiss_index.deserialize_from(embeddings_dir)
 
     results = {}
-    for image_name in Path(image_dir_path).iterdir():
-        print(image_name)
-        img_path = os.path.join(image_dir_path, image_name)
+    for img_path in Path(image_dir_path).iterdir():
+        print(img_path)
+        # img_path = os.path.join(image_dir_path, image_name)
 
         image = preprocess(Image.open(img_path)).unsqueeze(0).to(device)
         bs, ncrops, c, h, w = image.size()
@@ -265,19 +265,23 @@ def run_with_custom_images(image_dir_path, embeddings_dir, args):
             image_features = image_features / image_features.norm(dim=-1, keepdim=True)
             query_embeddings = image_features.detach().cpu().numpy()
         top_entities = retrieve_knn(query_embeddings, faiss_index, args)
-        results[image_name] = top_entities
+        results[img_path.stem] = top_entities
 
-    with open('./topentities.pkl', 'wb') as output:
-        pickle.dump(results, output)
+    print(results)
+    # with open('./topentities.pkl', 'wb') as output:
+    #     pickle.dump(results, output)
 
 
 if __name__ == '__main__':
     _parser = argparse.ArgumentParser('Extracting explicit knowledge for KAT', parents=[get_args_parser()])
+    _parser.add_argument('--step', type=int, required=True, help='Set to 1 for FAISS extraction, 2 for explicit features extraction')
     _args = _parser.parse_args()
 
-    # 1. Index the knowledge base
-    _entity_ids, _entity_data = load_all_entities(_args)
-    extract_features(_entity_ids, _entity_data, _args)
+    if _args.step == 1:
+        # 1. Index the knowledge base
+        _entity_ids, _entity_data = load_all_entities(_args)
+        extract_features(_entity_ids, _entity_data, _args)
 
-    # 2. Extract the explicit features
-    # run_with_custom_images('/Users/dt/Downloads/test', _args)
+    elif _args.step == 2:
+        # 2. Extract the explicit features
+        run_with_custom_images('./test_images', './embeddings', _args)
