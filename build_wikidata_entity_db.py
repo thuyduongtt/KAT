@@ -239,8 +239,11 @@ def load_all_entities(args):
     return entity_ids, entity_items
 
 
-def run_with_custom_images(image_dir_path, embeddings_dir, args):
+def run_with_custom_images(args):
     from pathlib import Path
+
+    image_dir_path = args.img_root
+    embeddings_dir = args.embedding_dir
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model, preprocess = clip.load("ViT-B/16", device=device)
@@ -267,9 +270,8 @@ def run_with_custom_images(image_dir_path, embeddings_dir, args):
         top_entities = retrieve_knn(query_embeddings, faiss_index, args)
         results[img_path.stem] = top_entities
 
-    print(results)
-    # with open('./topentities.pkl', 'wb') as output:
-    #     pickle.dump(results, output)
+    with open('./topentities.pkl', 'wb') as output:
+        pickle.dump(results, output)
 
 
 if __name__ == '__main__':
@@ -284,4 +286,4 @@ if __name__ == '__main__':
 
     elif _args.step == 2:
         # 2. Extract the explicit features
-        run_with_custom_images('./test_images', './embeddings', _args)
+        run_with_custom_images(_args)
