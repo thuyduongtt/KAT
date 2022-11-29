@@ -176,7 +176,7 @@ def crop_images(image):
 
 def get_args_parser():
     parser = argparse.ArgumentParser('DeiT training and evaluation script', add_help=False)
-    parser.add_argument('--split_type', default='train2014', type=str)
+    parser.add_argument('--split_type', default='train', type=str)
     parser.add_argument('--qa_path', default='', type=str, help='./data/OpenEnded_mscoco_[split_type]_questions.json')
     parser.add_argument('--embedding_dir', type=str, default='./embeddings', help='dst root to faiss database')
     parser.add_argument('--img_root', type=str, default='./test_images', help='img root to okvqa')
@@ -270,7 +270,7 @@ def run_with_custom_images(args):
         top_entities = retrieve_knn(query_embeddings, faiss_index, args)
         results[img_path.stem] = top_entities
 
-    with open('./topentities.pkl', 'wb') as output:
+    with open(f'./{args.split_type}_topentities.pkl', 'wb') as output:
         pickle.dump(results, output)
 
 

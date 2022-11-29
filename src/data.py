@@ -203,7 +203,7 @@ def load_okvqa_data(data_root=None, split_type='train2014',
     with open(os.path.join(data_root, '{}.pkl'.format(split_type)), 'rb') as input:
         (img_questions, img_answers) = pickle.load(input)
 
-    entity_path = os.path.join(data_root, 'topentities.pkl'.format(split_type))
+    entity_path = os.path.join(data_root, '{}_topentities.pkl'.format(split_type))
     with open(entity_path, 'rb') as input:
         wiki_entites = pickle.load(input)
 
