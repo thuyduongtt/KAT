@@ -1,9 +1,9 @@
-import torch
-import random
 import json
-import numpy as np
-import pickle
 import os
+import pickle
+import random
+
+import torch
 
 
 class Dataset(torch.utils.data.Dataset):
@@ -49,13 +49,12 @@ class Dataset(torch.utils.data.Dataset):
         else:
             passages, scores = None, None
 
-
         return {
-            'index' : index,
-            'question' : question,
-            'target' : target,
-            'passages' : passages,
-            'scores' : scores
+            'index': index,
+            'question': question,
+            'target': target,
+            'passages': passages,
+            'scores': scores
         }
 
     def sort_data(self):
@@ -66,6 +65,7 @@ class Dataset(torch.utils.data.Dataset):
 
     def get_example(self, index):
         return self.data[index]
+
 
 class OkvqaDataset(torch.utils.data.Dataset):
     def __init__(self,
@@ -104,9 +104,9 @@ class OkvqaDataset(torch.utils.data.Dataset):
             entities = example['entities'][:self.n_context]
 
             while len(entities) < self.n_context:
-                entities = entities + entities[:(self.n_context-len(entities))]
+                entities = entities + entities[:(self.n_context - len(entities))]
             try:
-                passages = [f.format(c[0], '{} is a {}'.format(c[0],c[1])) for c in entities]
+                passages = [f.format(c[0], '{} is a {}'.format(c[0], c[1])) for c in entities]
             except Exception as e:
                 print(example)
                 print(entities)
@@ -115,7 +115,7 @@ class OkvqaDataset(torch.utils.data.Dataset):
             passages = None
 
         if 'gpt3' in example and self.n_context is not None:
-            f = self.candidate_prefix+" {} " + self.evidence_prefix + " {}"
+            f = self.candidate_prefix + " {} " + self.evidence_prefix + " {}"
             prompt_info = example['gpt3']
             prompt_passages = [f.format(c[0], c[1]) for c in prompt_info]
             if passages is not None:
@@ -133,6 +133,7 @@ class OkvqaDataset(torch.utils.data.Dataset):
 
     def get_example(self, index):
         return self.data[index]
+
 
 def encode_passages(batch_text_passages, tokenizer, max_length):
     passage_ids, passage_masks = [], []
@@ -159,7 +160,7 @@ class OKvqaCollator(object):
         self.answer_maxlength = answer_maxlength
 
     def __call__(self, batch):
-        assert(batch[0]['target'] != None)
+        assert (batch[0]['target'] != None)
         index = torch.tensor([ex['index'] for ex in batch])
         target = [ex['target'] for ex in batch]
         target = self.tokenizer.batch_encode_plus(
@@ -189,7 +190,6 @@ class OKvqaCollator(object):
         return (img_ids, index, target_ids, target_mask, passage_ids, passage_masks)
 
 
-
 def load_json(file_path):
     with open(file_path, 'r') as input_file:
         data = json.load(input_file)
@@ -203,8 +203,7 @@ def load_okvqa_data(data_root=None, split_type='train2014',
     with open(os.path.join(data_root, '{}.pkl'.format(split_type)), 'rb') as input:
         (img_questions, img_answers) = pickle.load(input)
 
-    entity_path = os.path.join(data_root,
-                               'wikidata_okvqa_{}_topentities.pkl'.format(split_type))
+    entity_path = os.path.join(data_root, 'topentities.pkl'.format(split_type))
     with open(entity_path, 'rb') as input:
         wiki_entites = pickle.load(input)
 
@@ -215,14 +214,13 @@ def load_okvqa_data(data_root=None, split_type='train2014',
 
     examples = []
     for k, id in enumerate(img_questions):
-        if global_rank > -1 and not k%world_size==global_rank:
+        if global_rank > -1 and not k % world_size == global_rank:
             continue
         example = {}
         img_id = id.split('#')[0]
         question = img_questions[id]
         answer = img_answers[id]
         entities = wiki_entites[img_id][0]
-
 
         example['id'] = id
         example['question'] = question
@@ -236,8 +234,3 @@ def load_okvqa_data(data_root=None, split_type='train2014',
         examples.append(example)
 
     return examples
-
-
-
-
-

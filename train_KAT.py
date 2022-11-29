@@ -19,15 +19,14 @@ from timm.utils import ModelEma
 
 
 def train(model, model_ema, optimizer, scheduler, step, train_dataset, eval_dataset, opt, collator, best_dev_em, checkpoint_path):
-
     if opt.is_main:
         try:
-            tb_logger = torch.utils.tensorboard.SummaryWriter(Path(opt.checkpoint_dir)/opt.name)
+            tb_logger = torch.utils.tensorboard.SummaryWriter(Path(opt.checkpoint_dir) / opt.name)
         except:
             tb_logger = None
             logger.warning('Tensorboard is not available.')
 
-    torch.manual_seed(opt.global_rank + opt.seed) #different seed for different sampling depending on global_rank
+    torch.manual_seed(opt.global_rank + opt.seed)  # different seed for different sampling depending on global_rank
     train_sampler = RandomSampler(train_dataset)
     train_dataloader = DataLoader(
         train_dataset,
@@ -72,13 +71,13 @@ def train(model, model_ema, optimizer, scheduler, step, train_dataset, eval_data
                     if dev_em > best_dev_em:
                         best_dev_em = dev_em
                         src.util.save(model, optimizer, scheduler, step, best_dev_em,
-                                  opt, checkpoint_path, 'best_dev')
+                                      opt, checkpoint_path, 'best_dev')
                         dst_path = os.path.join(checkpoint_path, 'checkpoint')
                         with open(os.path.join(dst_path, 'best_result.pkl'), 'wb') as output:
                             pickle.dump(result, output)
                     log = f"{step} / {opt.total_steps} |"
-                    log += f"train: {curr_loss/opt.eval_freq:.3f} |"
-                    log += f"evaluation: {100*dev_em:.2f} EM |"
+                    log += f"train: {curr_loss / opt.eval_freq:.3f} |"
+                    log += f"evaluation: {100 * dev_em:.2f} EM |"
                     log += f"lr: {scheduler.get_last_lr()[0]:.5f}"
                     logger.info(log)
                     curr_loss = 0
@@ -88,19 +87,20 @@ def train(model, model_ema, optimizer, scheduler, step, train_dataset, eval_data
 
             if opt.is_main and step % opt.save_freq == 0:
                 src.util.save(model, optimizer, scheduler, step, best_dev_em,
-                          opt, checkpoint_path, f"step-{step}")
+                              opt, checkpoint_path, f"step-{step}")
             if step > opt.total_steps:
                 break
+
 
 def evaluate(model, dataset, tokenizer, collator, opt):
     sampler = SequentialSampler(dataset)
     dataloader = DataLoader(dataset,
-        sampler=sampler,
-        batch_size=opt.per_gpu_batch_size,
-        drop_last=False,
-        num_workers=16,
-        collate_fn=collator
-    )
+                            sampler=sampler,
+                            batch_size=opt.per_gpu_batch_size,
+                            drop_last=False,
+                            num_workers=16,
+                            collate_fn=collator
+                            )
     model.eval()
     acc = []
     result = {}
@@ -122,9 +122,10 @@ def evaluate(model, dataset, tokenizer, collator, opt):
                 cur_acc = src.evaluation.okvqa_ems(ans, gold)
                 acc.append(cur_acc)
 
-    accuracy = sum(acc)/len(acc)
+    accuracy = sum(acc) / len(acc)
     result['accuracy'] = accuracy
     return accuracy, result
+
 
 if __name__ == "__main__":
     options = Options()
@@ -137,7 +138,7 @@ if __name__ == "__main__":
     src.slurm.init_distributed_mode(opt)
     src.slurm.init_signal_handler()
 
-    checkpoint_path = Path(opt.checkpoint_dir)/opt.name
+    checkpoint_path = Path(opt.checkpoint_dir) / opt.name
     checkpoint_exists = False
 
     if opt.is_distributed:
@@ -156,15 +157,14 @@ if __name__ == "__main__":
     model_name = 't5-' + opt.model_size
     model_class = src.model.FiDT5
 
-    #load data
+    # load data
     tokenizer = transformers.T5Tokenizer.from_pretrained(model_name)
-
 
     collator = src.data.OKvqaCollator(opt.text_maxlength, tokenizer, answer_maxlength=opt.answer_maxlength)
     # use golbal rank and world size to split the eval set on multiple gpus
     train_examples = src.data.load_okvqa_data(
         opt.train_data,
-        split_type = 'train2014',
+        split_type='train',
         global_rank=opt.global_rank,
         world_size=opt.world_size,
         use_gpt=opt.use_gpt
@@ -175,7 +175,7 @@ if __name__ == "__main__":
     # use golbal rank and world size to split the eval set on multiple gpus
     eval_examples = src.data.load_okvqa_data(
         opt.eval_data,
-        split_type='val2014',
+        split_type='val',
         global_rank=opt.global_rank,
         world_size=opt.world_size,
         use_gpt=opt.use_gpt
