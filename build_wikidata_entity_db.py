@@ -242,7 +242,7 @@ def load_all_entities(args):
 def run_with_custom_images(args):
     from pathlib import Path
 
-    image_dir_path = args.img_root
+    img_root = args.img_root
     embeddings_dir = args.embedding_dir
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -255,9 +255,9 @@ def run_with_custom_images(args):
     faiss_index.deserialize_from(embeddings_dir)
 
     results = {}
-    for img_path in Path(image_dir_path).iterdir():
+    for img_path in Path(img_root).iterdir():
         print(img_path)
-        # img_path = os.path.join(image_dir_path, image_name)
+        # img_path = os.path.join(img_root, image_name)
 
         image = preprocess(Image.open(img_path)).unsqueeze(0).to(device)
         bs, ncrops, c, h, w = image.size()
@@ -270,7 +270,7 @@ def run_with_custom_images(args):
         top_entities = retrieve_knn(query_embeddings, faiss_index, args)
         results[img_path.stem] = top_entities
 
-    with open(f'./{args.split_type}_topentities.pkl', 'wb') as output:
+    with open(f'./{img_root}/{args.split_type}_topentities.pkl', 'wb') as output:
         pickle.dump(results, output)
 
 
