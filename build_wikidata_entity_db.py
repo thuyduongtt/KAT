@@ -244,6 +244,7 @@ def run_with_custom_images(args):
 
     img_root = args.img_root
     embeddings_dir = args.embedding_dir
+    split_type = args.split_type
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model, preprocess = clip.load("ViT-B/16", device=device)
@@ -255,8 +256,7 @@ def run_with_custom_images(args):
     faiss_index.deserialize_from(embeddings_dir)
 
     results = {}
-    for img_path in Path(img_root).iterdir():
-        print(img_path)
+    for img_path in Path(img_root, split_type).iterdir():
         # img_path = os.path.join(img_root, image_name)
 
         image = preprocess(Image.open(img_path)).unsqueeze(0).to(device)
@@ -270,7 +270,7 @@ def run_with_custom_images(args):
         top_entities = retrieve_knn(query_embeddings, faiss_index, args)
         results[img_path.stem] = top_entities
 
-    with open(f'./{img_root}/{args.split_type}_topentities.pkl', 'wb') as output:
+    with open(f'./{img_root}/{split_type}_topentities.pkl', 'wb') as output:
         pickle.dump(results, output)
 
 
