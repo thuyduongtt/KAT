@@ -91,7 +91,7 @@ def retrieve_knn(query_embeddings, faiss_index, args, n_entities=20):
     entity_names = [entity_data[entity_id][0] for entity_id in entity_ids]
     entity_dict = dict(zip(entity_ids, entity_names))
 
-    print('Finish loading index...')
+    # print('Finish loading index...')
     top_ids_and_scores = faiss_index.search_knn(query_embeddings, n_entities)
     entity_path = os.path.join(embeddings_dir, 'entity_ids.pkl')
     with open(entity_path, 'rb') as fin:
@@ -256,6 +256,7 @@ def run_with_custom_images(args):
     faiss_index.deserialize_from(embeddings_dir)
 
     results = {}
+    count = 0
     for img_path in Path(img_root, split_type).iterdir():
         # img_path = os.path.join(img_root, image_name)
 
@@ -269,6 +270,10 @@ def run_with_custom_images(args):
             query_embeddings = image_features.detach().cpu().numpy()
         top_entities = retrieve_knn(query_embeddings, faiss_index, args)
         results[img_path.stem] = top_entities
+
+        count += 1
+        if count % 100 == 0:
+            print('Processed:', count)
 
     with open(f'./{img_root}/{split_type}_topentities.pkl', 'wb') as output:
         pickle.dump(results, output)
