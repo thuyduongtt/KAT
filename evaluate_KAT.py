@@ -22,7 +22,7 @@ def evaluate(model, dataset, tokenizer, collator, opt):
         sampler=sampler,
         batch_size=opt.per_gpu_batch_size,
         drop_last=False,
-        num_workers=16,
+        num_workers=2,
         collate_fn=collator
     )
     model.eval()
