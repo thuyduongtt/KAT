@@ -131,6 +131,10 @@ if __name__ == "__main__":
     options = Options()
     opt = options.parse()
     arg_folder = os.path.join(opt.checkpoint_dir, opt.name)
+
+    if not Path(arg_folder).exists():
+        Path(arg_folder).mkdir(parents=True)
+
     with open(os.path.join(opt.checkpoint_dir, 'args.txt'), 'w') as f:
         json.dump(opt.__dict__, f, indent=2)
 
