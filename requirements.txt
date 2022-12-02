@@ -3,4 +3,5 @@ torch
 faiss-cpu
 transformers==3.0.2
 tensorboard
+timm
 git+https://github.com/openai/CLIP.git
