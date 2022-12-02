@@ -201,7 +201,7 @@ def load_okvqa_data(data_root=None, split_type='train2014',
                     global_rank=-1, world_size=-1, use_gpt=True):
     assert data_root
 
-    data = np.load(f'{data_root}/{split_type}_topentities.pkl', allow_pickle=True)
+    data = np.load(f'{data_root}/{split_type}.pkl', allow_pickle=True)
     img_questions = data[0]
     img_answers = data[1]
 
