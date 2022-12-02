@@ -245,6 +245,7 @@ def run_with_custom_images(args):
     img_root = args.img_root
     embeddings_dir = args.embedding_dir
     split_type = args.split_type
+    print(args)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model, preprocess = clip.load("ViT-B/16", device=device)
