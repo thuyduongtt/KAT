@@ -222,7 +222,7 @@ def load_okvqa_data(data_root=None, split_type='train2014',
         if global_rank > -1 and not k % world_size == global_rank:
             continue
         example = {}
-        img_id = id.split('#')[0]
+        img_id = id.split('#')[1]
         question = img_questions[id]
         answer = img_answers[id]
         entities = wiki_entites[img_id][0]
