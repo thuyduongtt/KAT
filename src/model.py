@@ -33,6 +33,8 @@ class FiDT5(transformers.T5ForConditionalGeneration):
         if attention_mask != None:
             attention_mask = attention_mask.view(attention_mask.size(0), -1)
 
+        print(kwargs)
+
         return super().forward(
             input_ids=input_ids,
             attention_mask=attention_mask,
