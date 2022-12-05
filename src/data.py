@@ -201,12 +201,8 @@ def load_okvqa_data(data_root=None, split_type='train2014',
                     global_rank=-1, world_size=-1, use_gpt=True):
     assert data_root
 
-    data = np.load(f'{data_root}/{split_type}.pkl', allow_pickle=True)
-    img_questions = data[0]
-    img_answers = data[1]
-
-    # with open(os.path.join(data_root, '{}.pkl'.format(split_type)), 'rb') as input:
-    #     (img_questions, img_answers) = pickle.load(input)
+    with open(os.path.join(data_root, '{}.pkl'.format(split_type)), 'rb') as input:
+        (img_questions, img_answers) = pickle.load(input)
 
     entity_path = os.path.join(data_root, '{}_topentities.pkl'.format(split_type))
     with open(entity_path, 'rb') as input:
