@@ -1,5 +1,7 @@
 #!/bin/bash
 
+NAME='chkp'
+
 torchrun --nproc_per_node=1 train_KAT.py \
   --train_data ds \
   --eval_data ds \
@@ -13,7 +15,8 @@ torchrun --nproc_per_node=1 train_KAT.py \
   --n_context 40 \
   --total_step 8000 \
   --warmup_step 1000 \
-  --name check_kat \
-  --checkpoint_dir checkpoint \
+  --name $NAME \
+  --checkpoint_dir $NAME \
   --accumulation_steps 1 \
+  --local_rank 0
 #   --use_gpt
