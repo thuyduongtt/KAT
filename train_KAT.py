@@ -217,6 +217,7 @@ if __name__ == "__main__":
         model = torch.nn.parallel.DistributedDataParallel(
             model,
             device_ids=[opt.local_rank],
+            # device_ids=list(range(torch.cuda.device_count())),
             output_device=opt.local_rank,
             find_unused_parameters=False,
         )
