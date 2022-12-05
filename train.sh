@@ -5,7 +5,7 @@ NAME='chkp'
 torchrun --nproc_per_node=1 train_KAT.py \
   --train_data ds \
   --eval_data ds \
-  --model_size large \
+  --model_size base \
   --lr 0.00003 \
   --optim adamw \
   --scheduler linear \
@@ -18,4 +18,4 @@ torchrun --nproc_per_node=1 train_KAT.py \
   --name $NAME \
   --checkpoint_dir $NAME \
   --accumulation_steps 1 \
-#   --use_gpt
+   --use_gpt
