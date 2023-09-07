@@ -49,7 +49,8 @@ def train(model, model_ema, optimizer, scheduler, step, train_dataset, eval_data
             train_loss = model(
                 input_ids=context_ids.cuda(),
                 attention_mask=context_mask.cuda(),
-                labels=labels.cuda()
+                labels=labels.cuda(),
+                return_dict=False
             )[0]
 
             train_loss.backward()
@@ -216,8 +217,8 @@ if __name__ == "__main__":
     if opt.is_distributed:
         model = torch.nn.parallel.DistributedDataParallel(
             model,
-            device_ids=[opt.local_rank],
-            # device_ids=list(range(torch.cuda.device_count())),
+            # device_ids=[opt.local_rank],
+            device_ids=list(range(torch.cuda.device_count())),
             output_device=opt.local_rank,
             find_unused_parameters=False,
         )
