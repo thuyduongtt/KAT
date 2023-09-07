@@ -17,5 +17,6 @@ torchrun --nproc_per_node=1 train_KAT.py \
   --warmup_step 1000 \
   --name $NAME \
   --checkpoint_dir $NAME \
-  --accumulation_steps 1 \
-   --use_gpt
+  --accumulation_steps 1 \Ï
+#  --use_gpt
+#  --seed 3
