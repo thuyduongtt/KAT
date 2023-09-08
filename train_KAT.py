@@ -49,8 +49,7 @@ def train(model, model_ema, optimizer, scheduler, step, train_dataset, eval_data
             train_loss = model(
                 input_ids=context_ids.cuda(),
                 attention_mask=context_mask.cuda(),
-                labels=labels.cuda(),
-                return_dict=False
+                labels=labels.cuda()
             )[0]
 
             train_loss.backward()
