@@ -1,7 +1,7 @@
 #!/bin/bash
 
 NAME='chkp'
-DATASET_DIR=unbalanced
+DATASET_DIR='unbalanced'
 
 torchrun --nproc_per_node=1 train_KAT.py \
   --train_data $DATASET_DIR \
