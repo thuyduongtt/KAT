@@ -179,7 +179,7 @@ if __name__ == "__main__":
     # use golbal rank and world size to split the eval set on multiple gpus
     eval_examples = src.data.load_okvqa_data(
         opt.eval_data,
-        split_type='val',
+        split_type='test',
         global_rank=opt.global_rank,
         world_size=opt.world_size,
         use_gpt=opt.use_gpt
