@@ -1,10 +1,11 @@
 #!/bin/bash
 
 NAME='chkp'
+DATASET_DIR=unbalanced
 
 torchrun --nproc_per_node=1 train_KAT.py \
-  --train_data ds \
-  --eval_data ds \
+  --train_data $DATASET_DIR \
+  --eval_data $DATASET_DIR \
   --model_size large \
   --lr 0.00003 \
   --optim adamw \
