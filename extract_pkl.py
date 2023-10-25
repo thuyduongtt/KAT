@@ -20,6 +20,8 @@ def convert_to_KAT_pkl(path_to_ds):
         answers = {}
 
         for q in qa_data['questions']:
+            if len(q['answers']) == 0:
+                continue
             key = f"{q['image_name']}#{q['image_id']}"
             question[key] = q['question']
             answers[key] = q['answers']
