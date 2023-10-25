@@ -37,7 +37,7 @@ source /fs/applications/p4s-access/2.0/ActivateP4S.sh -a
 # cd ~/
  
 # 3. Perform experiments
-NAME='chkp'
+NAME='chkp_unbalanced_1'
 DATASET_DIR='unbalanced'
 torchrun --nproc_per_node=1 train_KAT.py \
   --train_data $DATASET_DIR \
