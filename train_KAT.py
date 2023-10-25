@@ -6,6 +6,7 @@ import numpy as np
 from pathlib import Path
 from torch.utils.data import DataLoader, RandomSampler, DistributedSampler, SequentialSampler
 from src.options import Options
+from extract_pkl import convert_to_KAT_pkl
 
 import src.slurm
 import src.util
@@ -134,6 +135,12 @@ if __name__ == "__main__":
 
     if not Path(arg_folder).exists():
         Path(arg_folder).mkdir(parents=True)
+
+    # convert dataset to pickle
+    if not Path(opt.train_data + '/train.pkl').exists():
+        convert_to_KAT_pkl(opt.train_data)
+    if not Path(opt.eval_data + '/test.pkl').exists():
+        convert_to_KAT_pkl(opt.eval_data)
 
     with open(os.path.join(opt.checkpoint_dir, 'args.txt'), 'w') as f:
         json.dump(opt.__dict__, f, indent=2)
