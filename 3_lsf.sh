@@ -29,6 +29,10 @@ module load conda
 # 1. Specify conda env
 source activate KAT
 
+# To access internet within bsub script
+module load proxy4server-access
+source /fs/applications/p4s-access/2.0/ActivateP4S.sh -a
+
 # 2. Specify your work directory here
 # cd ~/
  
